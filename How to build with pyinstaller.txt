@@ -1,0 +1,1 @@
+pyinstaller PySerial_remote_control_new.spec
