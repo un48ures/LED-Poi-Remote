@@ -6,9 +6,11 @@ import threading
 
 import serial
 from tkinter import *
+import struct
 
 # Find connected Ports for Arduino
 import serial.tools.list_ports as port_list
+from numpy.matlib import empty
 
 root = tk.Tk()
 root.title("Remote Control LED Poi Sticks")
@@ -26,55 +28,49 @@ receiver_ids = [1, 2, 3, 4, 5, 6]
 
 # Send bytes
 def send(mode, receiver_id, picture, hue, saturation, brightness_value, velocity):
-    byte1 = mode
-    byte2 = receiver_id
-    byte3 = picture
-    byte4 = hue
-    byte5 = saturation
-    byte6 = brightness_value
-    byte7 = velocity
     starttime_SP_write = time.time_ns()
-    serialPort.write(
-        chr(byte1).encode('latin_1') + chr(byte2).encode('latin_1') + chr(byte3).encode('latin_1') +
-        chr(byte4).encode('latin_1') + chr(byte5).encode('latin_1') + chr(byte6).encode('latin_1') + chr(byte7).encode(
-            'latin_1'))
-    # msg = chr(byte1).encode('latin_1') + chr(byte2).encode('latin_1') + chr(byte3).encode('latin_1') + chr(byte4).encode('latin_1') + chr(byte5).encode('latin_1') + chr(byte6).encode('latin_1')
-    # serialPort.write(msg)
 
-    print("byte1 = " + str(byte1) + "(Mode)")
-    print("byte2 = " + str(byte2) + "(receiver_id)")
-    print("byte3 = " + str(byte3) + "(picture/hue)")
-    print("byte4 = " + str(byte4) + "(saturation)")
-    print("byte5 = " + str(byte5) + "(brightness/value)")
-    print("byte6 = " + str(byte6) + "(velocity)")
-    print("Receiver select: " + str(receiver_select.get()))
+    START_BYTE = 0xAA
+    packet = bytes([START_BYTE, int(mode), int(receiver_id), int(picture),
+                    int(hue), int(saturation), int(brightness_value), int(velocity)])
 
-    # Wait until there is data waiting in the serial buffer
-    if serialPort.in_waiting > 50:
+    if serialPort is not None:
+        serialPort.write(packet)
+    else:
+        print("No serial connection established - can`t write to serial Port")
 
-        # Read data out of the buffer until a carriage return / new line is found
-        serialString = serialPort.readline()
-        res = serialString.decode("Ascii").split()
-        # print("after readLine")
+    receive()
 
-        # Print the contents of the serial data
-        try:
-            inputb1.set(res[0] + "V")
-            inputb2.set(res[1] + "V")
-            inputb3.set(res[2] + "V")
-            inputb4.set(res[3] + "V")
-            inputb5.set(res[4] + "V")
-            inputb6.set(res[5] + "V")
-            inputss1.set(res[6] + "%")
-            inputss2.set(res[7] + "%")
-            inputss3.set(res[8] + "%")
-            inputss4.set(res[9] + "%")
-            inputss5.set(res[10] + "%")
-            inputss6.set(res[11] + "%")
-        except:
-            pass
     print("Duration for serial port write and receive: " + str(
         (time.time_ns() - starttime_SP_write) / 1000000) + " ms")
+
+def receive():
+    if serialPort is None:
+        return
+
+    expected_bytes = 12 * 4  # 12 floats, 4 bytes each = 48 bytes
+    if serialPort.in_waiting >= expected_bytes:
+        try:
+            raw_data = serialPort.read(expected_bytes)
+            floats = struct.unpack('<12f', raw_data)  # Little-endian float
+            voltages = floats[:6]
+            signal_strength = floats[6:]
+            inputb1.set(voltages[0] + "V")
+            inputb2.set(voltages[1] + "V")
+            inputb3.set(voltages[2] + "V")
+            inputb4.set(voltages[3] + "V")
+            inputb5.set(voltages[4] + "V")
+            inputb6.set(voltages[5] + "V")
+            inputss1.set(signal_strength[6] + "%")
+            inputss2.set(signal_strength[7] + "%")
+            inputss3.set(signal_strength[8] + "%")
+            inputss4.set(signal_strength[9] + "%")
+            inputss5.set(signal_strength[10] + "%")
+            inputss6.set(signal_strength[11] + "%")
+        except Exception as e:
+            print(f"[Binary Receive] Error: {e}")
+
+
 
 def send_single_all():
     if receiver_select.get() == -1:  # Select all (-1)
@@ -146,9 +142,11 @@ radiom3.grid(row=5, column=0, sticky="W")
 ports = list(port_list.comports())
 for p in ports:
     print(p)
-# Take first COM Port of List as default
-serialPort = serial.Serial(port=str(ports[0]).split()[0], baudrate=115200, bytesize=8, timeout=2,
-                           stopbits=serial.STOPBITS_ONE)
+
+if len(ports) > 0:
+    # Take first COM Port of List as default
+    serialPort = serial.Serial(port=str(ports[0]).split()[0], baudrate=115200, bytesize=8, timeout=2,
+                               stopbits=serial.STOPBITS_ONE)
 # COMBO BOX for COM Port
 combo = ttk.Combobox(root, state="readonly", values=ports)
 combo.grid(row=8, column=0)
