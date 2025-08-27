@@ -123,7 +123,7 @@ modeLabel = tk.Label(root, bg="white", text="Mode", anchor="n")
 modeLabel.grid(row=1, column=0)
 # Mode Radio Buttons
 mode_select = tk.IntVar()
-mode_select.set(1)
+mode_select.set(2)
 # Mode Video Light - Hardware Buttons
 radiom0 = tk.Radiobutton(root, text="Video Light Mode - HW Buttons", value=0, variable=mode_select)
 radiom0.grid(row=2, column=0, sticky="W")
@@ -142,14 +142,15 @@ ports = list(port_list.comports())
 for p in ports:
     print(p)
 
-if len(ports) > 0:
-    # Take first COM Port of List as default
-    serialPort = serial.Serial(port=str(ports[0]).split()[0], baudrate=115200, bytesize=8, timeout=2,
-                               stopbits=serial.STOPBITS_ONE)
 # COMBO BOX for COM Port
 combo = ttk.Combobox(root, state="readonly", values=ports)
 combo.grid(row=8, column=0)
 
+if len(ports) > 0:
+    # Take first COM Port of List as default
+    serialPort = serial.Serial(port=str(ports[0]).split()[0], baudrate=115200, bytesize=8, timeout=2,
+                               stopbits=serial.STOPBITS_ONE)
+    combo.set(ports[0])
 
 # Apply selected COM Port
 def apply():
@@ -231,35 +232,35 @@ for ids in receiver_ids:
     radiob.grid(row=int(ids + 1), column=4)  # row 4 - 9
 radio_all = tk.Radiobutton(root, text="all", value=-1, variable=receiver_select)
 radio_all.grid(row=8, column=4)
-receiver_select.set(1)  # setdefault to CH 20
+receiver_select.set(-1)  # setdefault to CH 20
 
 # Slider brightness/value Label
-brightlabel = tk.Label(root, bg="white", text="Brightness/Value", anchor="n")
-brightlabel.grid(row=1, column=5)
+bright_label = tk.Label(root, bg="white", text="Brightness/Value", anchor="n")
+bright_label.grid(row=1, column=5)
 # Slider brightness input
 bslider = tk.Scale(root, from_=0, to=8, orient=HORIZONTAL)
 bslider.grid(row=2, column=5)
 bslider.set(1)  # default
 
 # Slider Hue Label
-brightlabel = tk.Label(root, bg="white", text="Hue", anchor="n")
-brightlabel.grid(row=1, column=6)
+hue_label = tk.Label(root, bg="white", text="Hue", anchor="n")
+hue_label.grid(row=1, column=6)
 # Slider Hue input
 hslider = tk.Scale(root, from_=0, to=255, orient=HORIZONTAL)
 hslider.grid(row=2, column=6)
 hslider.set(1)  # default
 
 # Slider Saturation Label
-brightlabel = tk.Label(root, bg="white", text="Saturation")
-brightlabel.grid(row=1, column=7)
+sat_label = tk.Label(root, bg="white", text="Saturation")
+sat_label.grid(row=1, column=7)
 # Slider Saturation input
 sslider = tk.Scale(root, from_=0, to=255, orient=HORIZONTAL)
 sslider.grid(row=2, column=7)
 sslider.set(1)  # default
 
 # Slider velocity Label
-brightlabel = tk.Label(root, bg="white", text="Velocity", anchor="n")
-brightlabel.grid(row=1, column=8)
+vel_label = tk.Label(root, bg="white", text="Velocity", anchor="n")
+vel_label.grid(row=1, column=8)
 # Slider brightness input
 vslider = tk.Scale(root, from_=0, to=255, orient=HORIZONTAL)
 vslider.grid(row=2, column=8)
