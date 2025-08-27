@@ -49,28 +49,27 @@ def receive():
         return
 
     expected_bytes = 12 * 4  # 12 floats, 4 bytes each = 48 bytes
+
     if serialPort.in_waiting >= expected_bytes:
         try:
             raw_data = serialPort.read(expected_bytes)
             floats = struct.unpack('<12f', raw_data)  # Little-endian float
             voltages = floats[:6]
             signal_strength = floats[6:]
-            inputb1.set(voltages[0] + "V")
-            inputb2.set(voltages[1] + "V")
-            inputb3.set(voltages[2] + "V")
-            inputb4.set(voltages[3] + "V")
-            inputb5.set(voltages[4] + "V")
-            inputb6.set(voltages[5] + "V")
-            inputss1.set(signal_strength[6] + "%")
-            inputss2.set(signal_strength[7] + "%")
-            inputss3.set(signal_strength[8] + "%")
-            inputss4.set(signal_strength[9] + "%")
-            inputss5.set(signal_strength[10] + "%")
-            inputss6.set(signal_strength[11] + "%")
+            inputb1.set(str(voltages[0]) + "V")
+            inputb2.set(str(voltages[1]) + "V")
+            inputb3.set(str(voltages[2]) + "V")
+            inputb4.set(str(voltages[3]) + "V")
+            inputb5.set(str(voltages[4]) + "V")
+            inputb6.set(str(voltages[5]) + "V")
+            inputss1.set(str(signal_strength[0]) + "%")
+            inputss2.set(str(signal_strength[1]) + "%")
+            inputss3.set(str(signal_strength[2]) + "%")
+            inputss4.set(str(signal_strength[3]) + "%")
+            inputss5.set(str(signal_strength[4]) + "%")
+            inputss6.set(str(signal_strength[5]) + "%")
         except Exception as e:
             print(f"[Binary Receive] Error: {e}")
-
-
 
 def send_single_all():
     if receiver_select.get() == -1:  # Select all (-1)
