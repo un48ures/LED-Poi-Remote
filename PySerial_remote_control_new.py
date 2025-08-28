@@ -57,7 +57,7 @@ def receive():
         try:
             raw_data = serialPort.read(expected_bytes)
             floats = struct.unpack('<12f', raw_data)  # Little-endian float
-            voltages = floats[:6]
+            voltages = [round(f, 3) for f in floats[:6]]
             signal_strength = floats[6:]
             inputb1.set(str(voltages[0]) + "V")
             inputb2.set(str(voltages[1]) + "V")
